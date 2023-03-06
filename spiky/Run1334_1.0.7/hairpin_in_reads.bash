@@ -1,5 +1,6 @@
 #!/bin/bash
 echo -e "Sample\tReads_with_hairpins\tTotal_reads\tPercentage" > hairpin_in_reads.txt
+> hairpin_read_position.txt
 
 gsutil ls gs://cegx-run1334/nf-results/ss-1.0.7_RTS_2023-02-21_1711_5bp/dedup_genome_bams/*{AN01,MH01}*.bam |
 while read line
@@ -18,4 +19,15 @@ do
  #echo $percentage
 
  echo -e "${sample}\t${hairpin}\t${reads}\t${percentage}" >> hairpin_in_reads.txt
+
+ echo -e "Sample: ${sample}" >> hairpin_read_position.txt
+ echo -e "------------------------------------" >> hairpin_read_position.txt
+ echo -e "Base\tReads_with_hairpins_starting_after_base" >> hairpin_read_position.txt
+  for pos in 3 4 5 10 20 50 100 120
+   do
+    reads_after=$(gsutil cat $line | samtools view | cut -f10 | grep -E "^.{$pos,125}ACGATGCGTTCGAGCATCG" | wc -l)
+    echo -e "${pos}\t${reads_after}" >> hairpin_read_position.txt
+   done
+ echo -e "" >> hairpin_read_position.txt
 done
+
